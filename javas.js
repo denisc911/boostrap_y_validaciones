@@ -1,94 +1,112 @@
-document.getElementById('formulario').addEventListener('submit', function(event) {
-  event.preventDefault();
+// Crea la vista Crear Usuario que contenga lo siguiente:
+// Formulario con los siguientes campos
+// Nombre
+// Correo
+// Contraseña
+// Repite Contraseña 
 
-  // Obtener los valores de los campos
-  let nombre = document.getElementById('nombre').value.trim();
-  let correo = document.getElementById('correo').value.trim();
-  let contrasena = document.getElementById('contrasena').value.trim();
-  let repiteContrasena = document.getElementById('repite-contrasena').value.trim();
+document.getElementById('formulario').addEventListener('submit', function(e) {
+  e.preventDefault();
 
-  // Validar que todos los campos estén llenos
+  const nombre = document.getElementById('nombre').value;
+  const correo = document.getElementById('correo').value;
+  const contrasena = document.getElementById('contrasena').value;
+  const repiteContrasena = document.getElementById('repite-contrasena').value;
+
+// Guarda la información recogida de cada uno de los usuarios en localStorage.
+// Implementa validación que obligue a rellenar todos los campos.
+// Implementa una validación para el correo.
+// Implementa una validación que comprueba que la contraseña 1 es la misma que la contraseña 2.
+// Implementa una validación de contraseña.
+
+  // Validaciones
   if (nombre === '' || correo === '' || contrasena === '' || repiteContrasena === '') {
-    showAlert('Por favor, rellene todos los campos.', 'alert-danger');
+    mostrarMensaje('Todos los campos son obligatorios', 'danger');
     return;
   }
 
-  // Validar formato de correo electrónico
-  let correoRegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!correoRegExp.test(correo)) {
-    showAlert('Por favor, introduzca un correo electrónico válido.', 'alert-danger');
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(correo)) {
+    mostrarMensaje('Correo no válido', 'danger');
     return;
   }
 
-  // Validar que las contraseñas coincidan
   if (contrasena !== repiteContrasena) {
-    showAlert('Las contraseñas no coinciden.', 'alert-danger');
+    mostrarMensaje('Las contraseñas no coinciden', 'danger');
     return;
   }
 
-  // Validar fortaleza de la contraseña (implementar según tus criterios)
+  if (!validarContrasena(contrasena)) {
+    mostrarMensaje('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número', 'danger');
+    return;
+  }
 
-  // Si todas las validaciones pasan, guardar en localStorage
-  let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-  let usuario = {
-    nombre: nombre,
-    correo: correo,
-    contrasena: contrasena
-  };
-  usuarios.push(usuario);
-  localStorage.setItem('usuarios', JSON.stringify(usuarios));
+  // Guarda la información recogida de cada uno de los usuarios en localStorage.
+  const usuario = { nombre, correo };
+  guardarUsuario(usuario);
 
-  // Mostrar mensaje de éxito y redirigir
-  showAlert('Usuario creado correctamente. Redireccionando...', 'alert-success');
-  setTimeout(function() {
-    window.location.href = 'vista_usuarios.html';
+  // Mostrar mensaje de éxito
+  mostrarMensaje('Usuario creado correctamente', 'success');
+  setTimeout(() => {
+    window.location.href = '#seccion2';
+    cargarUsuarios();
   }, 3000);
 });
 
-function showAlert(message, className) {
-  // Eliminar alertas previas
-  let alerts = document.querySelectorAll('.alert');
-  alerts.forEach(function(alert) {
-    alert.remove();
-  });
+// validación de contraseña.
 
-  // Crear elemento de alerta
-  let alertElement = document.createElement('div');
-  alertElement.className = 'alert ' + className;
-  alertElement.appendChild(document.createTextNode(message));
+function validarContrasena(contrasena) {
+  const contrasenaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  return contrasenaRegex.test(contrasena);
+}
 
-  // Añadir alerta al DOM
-  let container = document.querySelector('.container');
-  container.insertBefore(alertElement, document.querySelector('form'));
-
-  // Desaparecer después de 3 segundos
-  setTimeout(function() {
-    alertElement.remove();
+function mostrarMensaje(mensaje, tipo) {
+  const alerta = document.createElement('div');
+  alerta.className = `alert alert-${tipo}`;
+  alerta.appendChild(document.createTextNode(mensaje));
+  const formulario = document.getElementById('formulario');
+  formulario.parentNode.insertBefore(alerta, formulario);
+  
+  // Por cada validación que no se cumpla muestra un mensaje durante 3 segundos y que después desaparezca.
+  // Al terminar de rellenar los datos del formulario correctamente muestra un mensaje durante 3 segundos que muestre “Usuario creado correctamente” y redirige a la vista Usuarios.
+//   Por cada validación que no se cumpla muestra un mensaje durante 3 segundos y que después desaparezca.
+// Al terminar de rellenar los datos del formulario correctamente muestra un mensaje durante 3 segundos que muestre “Usuario creado correctamente” y redirige a la vista Usuarios.
+// Muestra los mensajes utilizando los alerts de Bootstrap.
+  setTimeout(() => {
+    alerta.remove();
   }, 3000);
 }
-// Recuperar usuarios del localStorage
-let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+// Crea la vista Usuarios la cual debe mostrar en cards de Bootstrap los usuarios guardados en localStorage con los siguientes campos:
+// Nombre
+// Correo
 
-// Mostrar usuarios en cards
-let usuariosContainer = document.getElementById('usuarios-container');
-usuarios.forEach(function(usuario) {
-    let card = document.createElement('div');
-    card.className = 'card mb-3';
 
-    let cardBody = document.createElement('div');
-    cardBody.className = 'card-body';
+function guardarUsuario(usuario) {
+  let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+  usuarios.push(usuario);
+  localStorage.setItem('usuarios', JSON.stringify(usuarios));
+}
 
-    let nombre = document.createElement('h5');
-    nombre.className = 'card-title';
-    nombre.textContent = usuario.nombre;
+function cargarUsuarios() {
+  const usuariosContainer = document.getElementById('usuarios-container');
+  usuariosContainer.innerHTML = '';
 
-    let correo = document.createElement('p');
-    correo.className = 'card-text';
-    correo.textContent = usuario.correo;
+  const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
 
-    cardBody.appendChild(nombre);
-    cardBody.appendChild(correo);
-    card.appendChild(cardBody);
+  usuarios.forEach(usuario => {
+    const usuarioCard = document.createElement('div');
+    usuarioCard.className = 'col-md-4';
+    usuarioCard.innerHTML = `
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">${usuario.nombre}</h5>
+          <p class="card-text">${usuario.correo}</p>
+        </div>
+      </div>
+    `;
+    usuariosContainer.appendChild(usuarioCard);
+  });
+}
 
-    usuariosContainer.appendChild(card);
-});
+// Cargar usuarios al iniciar
+document.addEventListener('DOMContentLoaded', cargarUsuarios);
